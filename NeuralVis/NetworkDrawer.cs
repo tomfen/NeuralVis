@@ -14,20 +14,21 @@ namespace NeuralVis
 {
     class NetworkDrawer
     {
-        public static double margin = 50;
-        public static double padding = 100;
+        public static double margin = 0;
+        public static double padding = 75;
 
         private class Node
         {
             private int i;
             private int j;
             public Ellipse Circle { get; private set; }
-            public Neuron n { get; private set; }
+            public Rectangle ThresholdIcon { get; private set; }
+            public ActivationNeuron n { get; private set; }
 
             public static double size = 50;
             public bool IsInput { get { return n == null; } }
 
-            public Node(int i, int j, Neuron n)
+            public Node(int i, int j, ActivationNeuron n)
             {
                 this.i = i;
                 this.j = j;
@@ -40,12 +41,28 @@ namespace NeuralVis
                 Circle.Stroke = Brushes.Black;
                 Circle.StrokeThickness = 2;
 
+                if (!IsInput)
+                {
+                    ThresholdIcon = new Rectangle();
+                    ThresholdIcon.Width = 10;
+                    ThresholdIcon.Height = 10;
+                    ThresholdIcon.ToolTip = n.Threshold;
+                    updateThresholdIcon();
+                }
             }
 
             public Point Position { get {
                 return new Point(i * padding + margin, j * padding + margin);
             }}
-            
+
+
+            public void updateThresholdIcon()
+            {
+                if (!IsInput)
+                {
+                    ThresholdIcon.Fill = new SolidColorBrush(Color.FromRgb((byte)(128.0 + 100.0 * n.Threshold), 0, 0));
+                }
+            }
         }
 
         private class Connection
@@ -71,7 +88,7 @@ namespace NeuralVis
                 line.Stroke = Brushes.Red;
                 line.StrokeThickness = Weigth;
 
-                line.ToolTip = Weigth;
+                //line.ToolTip = Weigth;
             }
             
         }
@@ -104,7 +121,7 @@ namespace NeuralVis
 
                 for (int n = 0; n < layer.Neurons.Length; n++)
                 {
-                    Neuron neuron = layer.Neurons[n];
+                    var neuron = (ActivationNeuron)layer.Neurons[n];
 
                     nodes[l][n] = new Node(l, n, neuron);
                     for (int w = 0; w < neuron.Weights.Length; w++)
@@ -118,6 +135,25 @@ namespace NeuralVis
 
             putConnections();
             putNodes();
+            updateCanvasSize();
+        }
+
+        private void updateCanvasSize()
+        {
+            Point maxPos = new Point();
+
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                for (int j = 0; j < nodes[i].Length; j++)
+                {
+                    maxPos.X = Math.Max(nodes[i][j].Position.X, maxPos.X);
+                    maxPos.Y = Math.Max(nodes[i][j].Position.Y, maxPos.Y);
+                }
+            }
+
+            maxPos.Offset(Node.size + margin, Node.size + margin);
+            canvas.Width = maxPos.X;
+            canvas.Height = maxPos.Y;
         }
 
         private void putNodes()
@@ -128,8 +164,15 @@ namespace NeuralVis
                 {
                     Node node = nodes[l][n];
                     Canvas.SetTop(node.Circle, node.Position.Y );
-                    Canvas.SetLeft(node.Circle, node.Position.X );
+                    Canvas.SetLeft(node.Circle, node.Position.X);
                     canvas.Children.Add(node.Circle);
+
+                    if (!node.IsInput)
+                    {
+                        Canvas.SetTop(node.ThresholdIcon, node.Position.Y);
+                        Canvas.SetLeft(node.ThresholdIcon, node.Position.X);
+                        canvas.Children.Add(node.ThresholdIcon);
+                    }
                 }
             }
         }
@@ -148,6 +191,14 @@ namespace NeuralVis
             {
                 con.line.StrokeThickness = con.Weigth;
             }
+            foreach (Node[] layer in nodes)
+            {
+                foreach (Node node in layer)
+                {
+                    node.updateThresholdIcon();
+                }
+            }
         }
+
     }
 }

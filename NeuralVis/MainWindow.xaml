@@ -4,7 +4,7 @@
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         Title="NeuralVis" Height="620" Width="1092" Initialized="Window_Initialized" Closing="Window_Closing">
     <Grid Margin="0">
-        <lvc:CartesianChart x:Name="errorChart" Hoverable="False" DataTooltip="{x:Null}" DisableAnimations="True" Margin="740,436,10,10" Series="{Binding errorsCollection}" AnimationsSpeed="0" >
+        <lvc:CartesianChart x:Name="errorChart" Hoverable="False" DataTooltip="{x:Null}" DisableAnimations="True" Margin="0,0,2,10" Series="{Binding errorsCollection}" AnimationsSpeed="0" HorizontalAlignment="Right" Width="334" Height="143" VerticalAlignment="Bottom" >
             <lvc:CartesianChart.AxisY>
                 <lvc:Axis Title="Error" MinValue="0"></lvc:Axis>
             </lvc:CartesianChart.AxisY>
@@ -12,31 +12,43 @@
                 <lvc:Axis Title="Iteration" MinValue="0" MaxWidth="100"></lvc:Axis>
             </lvc:CartesianChart.AxisX>
         </lvc:CartesianChart>
-        <lvc:CartesianChart x:Name="dataChart"  Margin="740,10,10,218">
+        <lvc:CartesianChart x:Name="dataChart" Margin="0,10,2,218" HorizontalAlignment="Right" Width="334" DisableAnimations="True">
             <lvc:CartesianChart.Series>
-                <lvc:ScatterSeries Title="Series A" Values="{Binding ValuesA}" MaxPointShapeDiameter="5" />
-                <lvc:ScatterSeries Title="Series B" Values="{Binding ValuesB}" MaxPointShapeDiameter="5" />
+                <lvc:ScatterSeries Title="A" Values="{Binding ValuesA}" MaxPointShapeDiameter="5" />
+                <lvc:ScatterSeries Title="B" Values="{Binding ValuesB}" MaxPointShapeDiameter="5" />
             </lvc:CartesianChart.Series>
             <lvc:CartesianChart.AxisY>
                 <lvc:Axis Unit="1"></lvc:Axis>
             </lvc:CartesianChart.AxisY>
         </lvc:CartesianChart>
-        <Button x:Name="loadButton" Content="Load data" HorizontalAlignment="Left" Margin="85,488,0,0" VerticalAlignment="Top" Width="75" Click="loadDataButton_Click"/>
-        <Border BorderBrush="#FFCDCDCD" BorderThickness="1" HorizontalAlignment="Left" Height="400" Margin="10,10,0,0" VerticalAlignment="Top" Width="659">
-            <Canvas x:Name="canvas" Margin="0"/>
+        <Button x:Name="loadButton" Content="Load data" HorizontalAlignment="Left" Margin="85,0,0,81" Width="75" Click="loadDataButton_Click" Height="20" VerticalAlignment="Bottom"/>
+        <Border BorderThickness="1" Margin="10,10,374,179">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.AppWorkspaceColorKey}}"/>
+            </Border.BorderBrush>
+            <ScrollViewer Margin="0,0,1,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Canvas x:Name="canvas" Margin="0" Height="auto" Width="auto"/>
+            </ScrollViewer>
         </Border>
-        <TextBox x:Name="learningRateTextbox" HorizontalAlignment="Left" Height="23" Margin="85,435,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="alphaValueTextbox" HorizontalAlignment="Left" Height="20" Margin="85,463,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-        <TextBlock HorizontalAlignment="Left" Margin="10,436,0,0" TextWrapping="Wrap" Text="Learning rate:" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" Margin="49,463,0,0" TextWrapping="Wrap" Text="Alpha:" VerticalAlignment="Top"/>
-        <TextBlock HorizontalAlignment="Left" Margin="554,443,0,0" TextWrapping="Wrap" Text="Current iteration:" VerticalAlignment="Top"/>
-        <TextBlock x:Name="errorTextblock" HorizontalAlignment="Left" Margin="649,464,0,0" TextWrapping="Wrap" Text="0.00000000" VerticalAlignment="Top"/>
-        <TextBlock x:Name="iterationTextblock" HorizontalAlignment="Left" Margin="649,443,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
-        <TextBlock x:Name="errorTextblock1" HorizontalAlignment="Left" Margin="616,463,0,0" TextWrapping="Wrap" Text="Error:" VerticalAlignment="Top"/>
-        <Button x:Name="startButton" Content="Start" HorizontalAlignment="Left" Margin="85,515,0,0" VerticalAlignment="Top" Width="75" Click="startButton_Click"/>
-        <Button x:Name="stopButton" Content="Stop" HorizontalAlignment="Left" Margin="85,540,0,0" VerticalAlignment="Top" Width="75" Click="stopButton_Click"/>
-        <TextBlock HorizontalAlignment="Left" Margin="234,435,0,0" TextWrapping="Wrap" Text="Max iterations:" VerticalAlignment="Top"/>
-        <TextBox x:Name="maxIterationsTextbox" HorizontalAlignment="Left" Height="23" Margin="317,436,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-        <TextBlock HorizontalAlignment="Left" Margin="386,459,0,0" TextWrapping="Wrap" Text="0 is no limit" VerticalAlignment="Top" Foreground="#FF838383" FontSize="10"/>
+        <TextBox x:Name="learningRateTextbox" HorizontalAlignment="Left" Margin="85,0,0,131" TextWrapping="Wrap" Text="" Width="120" Height="23" VerticalAlignment="Bottom"/>
+        <TextBox x:Name="alphaValueTextbox" HorizontalAlignment="Left" Margin="85,0,0,106" TextWrapping="Wrap" Text="" Width="120" Height="20" VerticalAlignment="Bottom"/>
+        <TextBlock HorizontalAlignment="Left" Margin="8,0,0,138" TextWrapping="Wrap" Text="Learning rate:" Height="16" VerticalAlignment="Bottom"/>
+        <TextBlock HorizontalAlignment="Left" Margin="49,0,0,110" TextWrapping="Wrap" Text="Alpha:" Height="16" VerticalAlignment="Bottom"/>
+        <TextBlock Margin="0,0,440,130" TextWrapping="Wrap" Text="Current iteration:" HorizontalAlignment="Right" Height="16" VerticalAlignment="Bottom"/>
+        <TextBlock x:Name="errorTextblock" Margin="0,0,374,109" TextWrapping="Wrap" Text="0.00000000" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="61"/>
+        <TextBlock x:Name="iterationTextblock" Margin="0,0,374,130" TextWrapping="Wrap" Text="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="61" Height="16"/>
+        <TextBlock x:Name="errorTextblock1" Margin="0,0,440,110" TextWrapping="Wrap" Text="Error:" HorizontalAlignment="Right" Height="16" VerticalAlignment="Bottom"/>
+        <Button x:Name="startButton" Content="Start" HorizontalAlignment="Left" Margin="85,0,0,54" Width="75" Click="startButton_Click" Height="20" VerticalAlignment="Bottom" IsDefault="True" IsEnabled="False"/>
+        <Button x:Name="stopButton" Content="Stop" HorizontalAlignment="Left" Margin="85,0,0,29" Width="75" Click="stopButton_Click" Height="20" VerticalAlignment="Bottom" IsEnabled="False" IsCancel="True"/>
+        <TextBlock HorizontalAlignment="Left" Margin="234,0,0,138" TextWrapping="Wrap" Text="Max iterations:" Height="16" VerticalAlignment="Bottom"/>
+        <TextBox x:Name="maxIterationsTextbox" HorizontalAlignment="Left" Margin="317,0,0,130" TextWrapping="Wrap" Text="" Height="23" VerticalAlignment="Bottom" Width="120"/>
+        <TextBlock Margin="386,0,0,117" TextWrapping="Wrap" Text="0 is no limit" Foreground="#FF838383" FontSize="10" HorizontalAlignment="Left" Height="13" VerticalAlignment="Bottom"/>
+        <Border BorderThickness="1" HorizontalAlignment="Left" Margin="234,0,0,10" Width="100" Height="100" VerticalAlignment="Bottom">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.AppWorkspaceColorKey}}"/>
+            </Border.BorderBrush>
+            <Image x:Name="imageBox" Margin="0"/>
+        </Border>
+        <Button x:Name="clearButton" Content="Clear" Margin="0,0,360,44" HorizontalAlignment="Right" Width="75" Height="20" VerticalAlignment="Bottom" Click="clearButton_Click"/>
     </Grid>
 </Window>

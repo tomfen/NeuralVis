@@ -32,24 +32,20 @@ namespace NeuralVis
     {
         public ChartValues<ObservablePoint> ValuesA { get; set; }
         public ChartValues<ObservablePoint> ValuesB { get; set; }
-        public LineSeries errorsSeries = new LineSeries
-                {
-                    PointGeometry = null,
-                    Values = new ChartValues<double> {}
-                };
         public SeriesCollection errorsCollection = new SeriesCollection ();
+        private LinechartManager errorchartManager;
 
-        private double  learningRate = 0.1;
-        private double  alphaValue = 2.0;
-        private int     maxIterations = 0;
-        private bool    IterationsLimited { get { return maxIterations != 0; } }
-        private Point[] P;
-        private double[] C;
+        private double      learningRate = 0.1;
+        private double      alphaValue = 2.0;
+        private int         maxIterations = 0;
+        private bool        IterationsLimited { get { return maxIterations != 0; } }
+        private Point[]     P;
+        private double[]    C;
         private NetworkDrawer drawer;
 
         private Thread workerThread = null;
         private volatile bool stopWorkerThread = false;
-        private int[] layerNodes = new int[] {3,3,2,2};
+        private int[] layerNodes = new int[] {1,2};
 
 
         private void reportProgress(int iteration, double error)
@@ -59,9 +55,13 @@ namespace NeuralVis
 
             drawer.update();
 
-            if (errorsSeries.Values.Count > 500)
-                errorsSeries.Values.RemoveAt(0);
-            errorsSeries.Values.Add(error);
+            errorchartManager.add(error);
+        }
+
+        private void reportWorkFinish()
+        {
+            errorchartManager.pushBuffer();
+            enableControls(true);
         }
 
         public MainWindow()
@@ -69,7 +69,7 @@ namespace NeuralVis
             InitializeComponent();
 
             errorChart.Series = errorsCollection;
-            errorsCollection.Add(errorsSeries);
+            errorchartManager = new LinechartManager(errorsCollection);
         }
 
         private void loadDataButton_Click(object sender, RoutedEventArgs e)
@@ -108,6 +108,8 @@ namespace NeuralVis
 
                     DataContext = null;
                     DataContext = this;
+
+                    startButton.IsEnabled = true;
                 }
                 catch (Exception)
                 {
@@ -139,13 +141,16 @@ namespace NeuralVis
 		void enableControls(bool enable) {
             loadButton.IsEnabled = enable;
             startButton.IsEnabled = enable;
+            clearButton.IsEnabled = enable;
             stopButton.IsEnabled = !enable;
+            alphaValueTextbox.IsEnabled = enable;
+            learningRateTextbox.IsEnabled = enable;
+            maxIterationsTextbox.IsEnabled = enable;
         }
 
         private void Window_Initialized(object sender, EventArgs e)
         {
             updateGuiValues();
-            enableControls(true);
         }
 
         private void startButton_Click(object sender, RoutedEventArgs e)
@@ -153,6 +158,8 @@ namespace NeuralVis
             enableControls(false);
             readGuiValues();
             updateGuiValues();
+
+            errorchartManager.newSeries();
 
             stopWorkerThread = false;
             workerThread = new Thread(new ThreadStart(networkWork));
@@ -186,11 +193,6 @@ namespace NeuralVis
 
         private void networkWork()
         {
-            Dispatcher.Invoke(new Action(delegate()
-            {
-                errorsSeries.Values.Clear();
-            }));
-
             int features = 2;
             int samples = P.Length;
 
@@ -232,35 +234,13 @@ namespace NeuralVis
                 }));
 
                 iteration++;
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
 
             Dispatcher.Invoke(new Action(delegate()
             {
-                enableControls(true);
+                reportWorkFinish();
             }));
-
-            
-
-            /*// show perceptron's weights
-            ClearList(weightsList);
-            for (int i = 0; i < neuronsCount; i++)
-            {
-                string neuronName = string.Format("Neuron {0}", i + 1);
-                ListViewItem item = null;
-
-                // add all weights
-                for (int j = 0; j < variables; j++)
-                {
-                    item = AddListItem(weightsList, neuronName);
-                    AddListSubitem(item, string.Format("Weight {0}", j + 1));
-                    AddListSubitem(item, layer.Neurons[i].Weights[0].ToString("F6"));
-                }
-                // threshold
-                item = AddListItem(weightsList, neuronName);
-                AddListSubitem(item, "Threshold");
-                AddListSubitem(item, ((ActivationNeuron)layer.Neurons[i]).Threshold.ToString("F6"));
-            }*/
 
         }
 
@@ -269,6 +249,11 @@ namespace NeuralVis
             stopWorkerThread = true;
             if (workerThread != null)
                 workerThread.Join(500);
+        }
+
+        private void clearButton_Click(object sender, RoutedEventArgs e)
+        {
+            errorchartManager.clear();
         }
 
 
