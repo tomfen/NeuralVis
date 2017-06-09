@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
-        Title="NeuralVis" Height="620" Width="1092" Initialized="Window_Initialized" Closing="Window_Closing">
+        Title="NeuralVis" Height="620" Width="1092" Initialized="Window_Initialized" Closing="Window_Closing" MinWidth="1000" Margin="0" MinHeight="600">
     <Grid Margin="0">
         <lvc:CartesianChart x:Name="errorChart" Hoverable="False" DataTooltip="{x:Null}" DisableAnimations="True" Margin="0,0,2,10" Series="{Binding errorsCollection}" AnimationsSpeed="0" HorizontalAlignment="Right" Width="334" Height="143" VerticalAlignment="Bottom" >
             <lvc:CartesianChart.AxisY>
@@ -30,25 +30,28 @@
                 <Canvas x:Name="canvas" Margin="0" Height="auto" Width="auto"/>
             </ScrollViewer>
         </Border>
-        <TextBox x:Name="learningRateTextbox" HorizontalAlignment="Left" Margin="85,0,0,131" TextWrapping="Wrap" Text="" Width="120" Height="23" VerticalAlignment="Bottom"/>
+        <TextBox x:Name="learningRateTextbox" HorizontalAlignment="Left" Margin="85,0,0,131" TextWrapping="Wrap" Text="" Width="120" Height="20" VerticalAlignment="Bottom"/>
         <TextBox x:Name="alphaValueTextbox" HorizontalAlignment="Left" Margin="85,0,0,106" TextWrapping="Wrap" Text="" Width="120" Height="20" VerticalAlignment="Bottom"/>
-        <TextBlock HorizontalAlignment="Left" Margin="8,0,0,138" TextWrapping="Wrap" Text="Learning rate:" Height="16" VerticalAlignment="Bottom"/>
-        <TextBlock HorizontalAlignment="Left" Margin="49,0,0,110" TextWrapping="Wrap" Text="Alpha:" Height="16" VerticalAlignment="Bottom"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,0,0,138" TextWrapping="Wrap" Text="Learning rate:" Height="16" VerticalAlignment="Bottom" TextAlignment="Right"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,0,0,110" TextWrapping="Wrap" Text="Alpha:" Height="16" VerticalAlignment="Bottom" TextAlignment="Right" Width="72"/>
         <TextBlock Margin="0,0,440,130" TextWrapping="Wrap" Text="Current iteration:" HorizontalAlignment="Right" Height="16" VerticalAlignment="Bottom"/>
         <TextBlock x:Name="errorTextblock" Margin="0,0,374,109" TextWrapping="Wrap" Text="0.00000000" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="61"/>
         <TextBlock x:Name="iterationTextblock" Margin="0,0,374,130" TextWrapping="Wrap" Text="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="61" Height="16"/>
         <TextBlock x:Name="errorTextblock1" Margin="0,0,440,110" TextWrapping="Wrap" Text="Error:" HorizontalAlignment="Right" Height="16" VerticalAlignment="Bottom"/>
         <Button x:Name="startButton" Content="Start" HorizontalAlignment="Left" Margin="85,0,0,54" Width="75" Click="startButton_Click" Height="20" VerticalAlignment="Bottom" IsDefault="True" IsEnabled="False"/>
         <Button x:Name="stopButton" Content="Stop" HorizontalAlignment="Left" Margin="85,0,0,29" Width="75" Click="stopButton_Click" Height="20" VerticalAlignment="Bottom" IsEnabled="False" IsCancel="True"/>
-        <TextBlock HorizontalAlignment="Left" Margin="234,0,0,138" TextWrapping="Wrap" Text="Max iterations:" Height="16" VerticalAlignment="Bottom"/>
-        <TextBox x:Name="maxIterationsTextbox" HorizontalAlignment="Left" Margin="317,0,0,130" TextWrapping="Wrap" Text="" Height="23" VerticalAlignment="Bottom" Width="120"/>
-        <TextBlock Margin="386,0,0,117" TextWrapping="Wrap" Text="0 is no limit" Foreground="#FF838383" FontSize="10" HorizontalAlignment="Left" Height="13" VerticalAlignment="Bottom"/>
-        <Border BorderThickness="1" HorizontalAlignment="Left" Margin="234,0,0,10" Width="100" Height="100" VerticalAlignment="Bottom">
+        <TextBlock HorizontalAlignment="Left" Margin="224,0,0,110" TextWrapping="Wrap" Text="Max iterations:" Height="16" VerticalAlignment="Bottom" TextAlignment="Right"/>
+        <TextBox x:Name="maxIterationsTextbox" HorizontalAlignment="Left" Margin="307,0,0,106" TextWrapping="Wrap" Text="" Height="20" VerticalAlignment="Bottom" Width="120"/>
+        <TextBlock Margin="376,0,0,88" TextWrapping="Wrap" Text="0 is no limit" Foreground="#FF838383" FontSize="10" HorizontalAlignment="Left" Height="13" VerticalAlignment="Bottom"/>
+        <Border x:Name="border" BorderThickness="1" HorizontalAlignment="Right" Margin="0,0,473,10" Width="100" Height="100" VerticalAlignment="Bottom">
             <Border.BorderBrush>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.AppWorkspaceColorKey}}"/>
             </Border.BorderBrush>
             <Image x:Name="imageBox" Margin="0"/>
         </Border>
         <Button x:Name="clearButton" Content="Clear" Margin="0,0,360,44" HorizontalAlignment="Right" Width="75" Height="20" VerticalAlignment="Bottom" Click="clearButton_Click"/>
+        <TextBlock HorizontalAlignment="Left" Height="20" Margin="224,0,0,131" TextWrapping="Wrap" Text="Hidden layers:" VerticalAlignment="Bottom" Width="78" TextAlignment="Right"/>
+        <TextBox x:Name="layersTextbox" HorizontalAlignment="Left" Margin="307,0,0,131" TextWrapping="Wrap" Width="120" Height="20" VerticalAlignment="Bottom"/>
+        <CheckBox x:Name="keepPreviousCheckbox" Content="Keep previous" HorizontalAlignment="Right" Margin="0,0,340,73" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>

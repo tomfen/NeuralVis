@@ -14,8 +14,9 @@ namespace NeuralVis
 {
     class NetworkDrawer
     {
-        public static double margin = 0;
-        public static double padding = 75;
+        public static double margin = 10;
+        public static double paddingH = 25;
+        public static double paddingV = 100;
 
         private class Node
         {
@@ -25,7 +26,7 @@ namespace NeuralVis
             public Rectangle ThresholdIcon { get; private set; }
             public ActivationNeuron n { get; private set; }
 
-            public static double size = 50;
+            public static double size = 20;
             public bool IsInput { get { return n == null; } }
 
             public Node(int i, int j, ActivationNeuron n)
@@ -39,20 +40,19 @@ namespace NeuralVis
                 Circle.Width = Node.size;
                 Circle.Fill = Brushes.White;
                 Circle.Stroke = Brushes.Black;
-                Circle.StrokeThickness = 2;
+                Circle.StrokeThickness = 1;
 
                 if (!IsInput)
                 {
                     ThresholdIcon = new Rectangle();
-                    ThresholdIcon.Width = 10;
-                    ThresholdIcon.Height = 10;
-                    ThresholdIcon.ToolTip = n.Threshold;
+                    ThresholdIcon.Width = 4;
+                    ThresholdIcon.Height = 4;
                     updateThresholdIcon();
                 }
             }
 
             public Point Position { get {
-                return new Point(i * padding + margin, j * padding + margin);
+                return new Point(j * paddingH + margin, i * paddingV + margin);
             }}
 
 
@@ -60,8 +60,15 @@ namespace NeuralVis
             {
                 if (!IsInput)
                 {
-                    ThresholdIcon.Fill = new SolidColorBrush(Color.FromRgb((byte)(128.0 + 100.0 * n.Threshold), 0, 0));
+                    ThresholdIcon.Fill = getBrush(n.Threshold);
                 }
+            }
+
+            static private SigmoidFunction thresholdToColorMapper = new SigmoidFunction(2);
+            static private Brush getBrush(double threshold)
+            {
+                byte r = (byte)(thresholdToColorMapper.Function(threshold) * 255);
+                return new SolidColorBrush(Color.FromRgb(r, 0, 0));
             }
         }
 
@@ -88,9 +95,12 @@ namespace NeuralVis
                 line.Stroke = Brushes.Red;
                 line.StrokeThickness = Weigth;
 
-                //line.ToolTip = Weigth;
             }
-            
+
+            public void update()
+            {
+                line.StrokeThickness = this.Weigth * 0.2;
+            }
         }
 
         Canvas canvas;
@@ -189,7 +199,7 @@ namespace NeuralVis
         {
             foreach (Connection con in connections)
             {
-                con.line.StrokeThickness = con.Weigth;
+                con.update();
             }
             foreach (Node[] layer in nodes)
             {

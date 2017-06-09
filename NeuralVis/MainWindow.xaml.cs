@@ -45,7 +45,7 @@ namespace NeuralVis
 
         private Thread workerThread = null;
         private volatile bool stopWorkerThread = false;
-        private int[] layerNodes = new int[] {1,2};
+        private int[] hiddenNodes = new int[]{2,2};
 
 
         private void reportProgress(int iteration, double error)
@@ -74,6 +74,8 @@ namespace NeuralVis
 
         private void loadDataButton_Click(object sender, RoutedEventArgs e)
         {
+            new DataSet(null);////////////////////////////////////////
+
             var ofd = new Microsoft.Win32.OpenFileDialog();
             ofd.Filter = "CSV (Comma delimited) (*.csv)|*.csv|All files (*.*)|*.*";
 
@@ -128,6 +130,27 @@ namespace NeuralVis
 
             if (!int.TryParse(maxIterationsTextbox.Text, out maxIterations))
                 maxIterations = 0;
+
+            try
+            {
+                if (layersTextbox.Text.Length == 0)
+                {
+                    hiddenNodes = new int[0];
+                }
+                else
+                {
+                    String[] layers = layersTextbox.Text.Split(new char[] { ',', ';', ' ' });
+                    hiddenNodes = new int[layers.Length];
+                    for (int i = 0; i < layers.Length; i++)
+                    {
+                        hiddenNodes[i] = Math.Max(1, int.Parse(layers[i]));
+                    }
+                }
+            }
+            catch
+            {
+                hiddenNodes = new int[]{2};
+            }
         }
 
         void updateGuiValues()
@@ -135,6 +158,8 @@ namespace NeuralVis
             learningRateTextbox.Text = learningRate.ToString();
             alphaValueTextbox.Text = alphaValue.ToString();
             maxIterationsTextbox.Text = maxIterations.ToString();
+
+            layersTextbox.Text = String.Join(",", hiddenNodes);
         }
 
         
@@ -143,9 +168,11 @@ namespace NeuralVis
             startButton.IsEnabled = enable;
             clearButton.IsEnabled = enable;
             stopButton.IsEnabled = !enable;
+            layersTextbox.IsEnabled = enable;
             alphaValueTextbox.IsEnabled = enable;
             learningRateTextbox.IsEnabled = enable;
             maxIterationsTextbox.IsEnabled = enable;
+            keepPreviousCheckbox.IsEnabled = enable;
         }
 
         private void Window_Initialized(object sender, EventArgs e)
@@ -158,6 +185,9 @@ namespace NeuralVis
             enableControls(false);
             readGuiValues();
             updateGuiValues();
+
+            if (keepPreviousCheckbox.IsChecked == false)
+                errorchartManager.clear();
 
             errorchartManager.newSeries();
 
@@ -185,7 +215,9 @@ namespace NeuralVis
 
             for (int i = 0; i < samples; i++)
             {
-                vectors[i] = new double[2] { p[i].X, p[i].Y};
+                vectors[i] = new double[50];
+                vectors[i][0] = p[i].X;
+                vectors[i][1] = p[i].Y;
             }
 
             return vectors;
@@ -193,7 +225,7 @@ namespace NeuralVis
 
         private void networkWork()
         {
-            int features = 2;
+            int features = 50;
             int samples = P.Length;
 
             double[][] input = getVectors(P);
@@ -209,9 +241,13 @@ namespace NeuralVis
                     output[i][1] = 1;
             }
 
+            int[] layers = new int[hiddenNodes.Length + 1];
+            Array.Copy(hiddenNodes, layers, hiddenNodes.Length);
+            layers[layers.Length - 1] = 2; 
+
             ActivationNetwork network = new ActivationNetwork(
-                new SigmoidFunction(alphaValue), features, layerNodes);
-            ActivationLayer layer = network.Layers[0] as ActivationLayer;
+                new SigmoidFunction(alphaValue), features, layers);
+
             BackPropagationLearning teacher = new BackPropagationLearning(network);
             teacher.LearningRate = learningRate;
 
@@ -229,12 +265,14 @@ namespace NeuralVis
             {
                 double error = teacher.RunEpoch(input, output) / samples;
 
+                if (iteration % (4*1024) == 0)
                 Dispatcher.Invoke(new Action(delegate() {
                     reportProgress(iteration, error);
                 }));
 
                 iteration++;
-                Thread.Sleep(10);
+
+                //Thread.Sleep(10);
             }
 
             Dispatcher.Invoke(new Action(delegate()
