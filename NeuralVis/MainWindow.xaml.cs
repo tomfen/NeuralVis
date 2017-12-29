@@ -30,30 +30,25 @@ namespace NeuralVis
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ChartValues<ObservablePoint> ValuesA { get; set; }
-        public ChartValues<ObservablePoint> ValuesB { get; set; }
         public SeriesCollection errorsCollection = new SeriesCollection ();
         private LinechartManager errorchartManager;
 
-        private double      learningRate = 0.1;
-        private double      alphaValue = 2.0;
+        private double      learningRate = 0.3;
+        private double      alphaValue = 0.5;
         private int         maxIterations = 0;
         private bool        IterationsLimited { get { return maxIterations != 0; } }
-        private Point[]     P;
-        private double[]    C;
+        private DataSet     dataSet;
         private NetworkDrawer drawer;
+        private ActivationNetwork network;
 
         private Thread workerThread = null;
         private volatile bool stopWorkerThread = false;
-        private int[] hiddenNodes = new int[]{2,2};
-
+        private int[] hiddenNodes = new int[]{10};
 
         private void reportProgress(int iteration, double error)
         {
             iterationTextblock.Text = iteration.ToString();
             errorTextblock.Text = error.ToString("0.00000000");
-
-            drawer.update();
 
             errorchartManager.add(error);
         }
@@ -61,6 +56,9 @@ namespace NeuralVis
         private void reportWorkFinish()
         {
             errorchartManager.pushBuffer();
+            drawer.update();
+            queryTextbox.IsEnabled = true;
+            computeButton.IsEnabled = true;
             enableControls(true);
         }
 
@@ -70,47 +68,17 @@ namespace NeuralVis
 
             errorChart.Series = errorsCollection;
             errorchartManager = new LinechartManager(errorsCollection);
+            errorChart.AxisX[0].LabelFormatter = val => (val * 1000).ToString();
         }
 
         private void loadDataButton_Click(object sender, RoutedEventArgs e)
         {
-            new DataSet(null);////////////////////////////////////////
-
-            var ofd = new Microsoft.Win32.OpenFileDialog();
-            ofd.Filter = "CSV (Comma delimited) (*.csv)|*.csv|All files (*.*)|*.*";
-
-            if (ofd.ShowDialog() == true)
+            LoadDataWindow ldw = new LoadDataWindow();
+            if (ldw.ShowDialog() == true)
             {
                 try
                 {
-                    String[] lines = File.ReadAllLines(ofd.FileName);
-
-                    P = new Point[lines.Length];
-                    C = new double[lines.Length];
-
-                    for (int i = 0; i < lines.Length; i++)
-                    {
-                        var vals = lines[i].Split(new char[3] { '\t', ',', ';' });
-                        double x = double.Parse(vals[0], CultureInfo.InvariantCulture);
-                        double y = double.Parse(vals[1], CultureInfo.InvariantCulture);
-                        P[i] = new Point(x, y);
-                        C[i] = double.Parse(vals[2], CultureInfo.InvariantCulture);
-                    }
-
-                    ValuesA = new ChartValues<ObservablePoint>();
-                    ValuesB = new ChartValues<ObservablePoint>();
-
-                    for (int i = 0; i < P.Length; i++)
-                    {
-                        if (C[i] == 0)
-                            ValuesA.Add(new ObservablePoint(P[i].X, P[i].Y));
-                        else if (C[i] == 1)
-                            ValuesB.Add(new ObservablePoint(P[i].X, P[i].Y));
-                    }
-
-                    DataContext = null;
-                    DataContext = this;
-
+                    dataSet = ldw.dataSet;
                     startButton.IsEnabled = true;
                 }
                 catch (Exception)
@@ -123,10 +91,10 @@ namespace NeuralVis
         void readGuiValues()
         {
             if (!double.TryParse(learningRateTextbox.Text, out learningRate))
-                learningRate = 0.2;
+                learningRate = 0.3;
 
             if (!double.TryParse(alphaValueTextbox.Text, out alphaValue))
-                alphaValue = 2.0;
+                alphaValue = 0.5;
 
             if (!int.TryParse(maxIterationsTextbox.Text, out maxIterations))
                 maxIterations = 0;
@@ -205,47 +173,22 @@ namespace NeuralVis
 
         private void createDrawer(ActivationNetwork network)
         {
-            this.drawer = new NetworkDrawer(canvas, network);
-        }
-
-        private double[][] getVectors(Point[] p)
-        {
-            int samples = p.Length;
-            double[][] vectors = new double[samples][];
-
-            for (int i = 0; i < samples; i++)
-            {
-                vectors[i] = new double[50];
-                vectors[i][0] = p[i].X;
-                vectors[i][1] = p[i].Y;
-            }
-
-            return vectors;
+            this.drawer = new NetworkDrawer(canvas, network, dataSet);
         }
 
         private void networkWork()
         {
-            int features = 50;
-            int samples = P.Length;
+            int features = dataSet.Input[0].Length;
+            int samples = dataSet.Input.Length;
 
-            double[][] input = getVectors(P);
-            double[][] output = new double[samples][];
-
-            for (int i = 0; i < samples; i++)
-            {
-                output[i] = new double[2];
-
-                if (C[i] == 0)
-                    output[i][0] = 1;
-                else
-                    output[i][1] = 1;
-            }
+            double[][] input = dataSet.Input;
+            double[][] output = dataSet.Output;
 
             int[] layers = new int[hiddenNodes.Length + 1];
             Array.Copy(hiddenNodes, layers, hiddenNodes.Length);
             layers[layers.Length - 1] = 2; 
 
-            ActivationNetwork network = new ActivationNetwork(
+            network = new ActivationNetwork(
                 new SigmoidFunction(alphaValue), features, layers);
 
             BackPropagationLearning teacher = new BackPropagationLearning(network);
@@ -265,14 +208,12 @@ namespace NeuralVis
             {
                 double error = teacher.RunEpoch(input, output) / samples;
 
-                if (iteration % (4*1024) == 0)
+                if (iteration % (1000) == 0)
                 Dispatcher.Invoke(new Action(delegate() {
                     reportProgress(iteration, error);
                 }));
 
                 iteration++;
-
-                //Thread.Sleep(10);
             }
 
             Dispatcher.Invoke(new Action(delegate()
@@ -292,6 +233,17 @@ namespace NeuralVis
         private void clearButton_Click(object sender, RoutedEventArgs e)
         {
             errorchartManager.clear();
+        }
+
+
+
+        /////////////////////////////////////////////////////////////////////////////////////
+        private void computeButton_Click(object sender, RoutedEventArgs e)
+        {
+            String[] s = WikiClient.getPageExtract(queryTextbox.Text);
+            var doc = new Document(s, -1);
+            var v = doc.toVector(dataSet.voc);
+            drawer.showCompute(v);
         }
 
 
